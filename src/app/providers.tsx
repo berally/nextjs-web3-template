@@ -1,79 +1,49 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import '@rainbow-me/rainbowkit/styles.css';
-
+import { DynamicContextProvider } from "@dynamic-labs/sdk-react-core";
+import { EthereumWalletConnectors } from "@dynamic-labs/ethereum";
+import { DynamicWagmiConnector } from "@dynamic-labs/wagmi-connector";
 import {
-    getDefaultConfig,
-    RainbowKitProvider,
-    connectorsForWallets,
-    getDefaultWallets,
-} from '@rainbow-me/rainbowkit';
-import {
-    argentWallet,
-    trustWallet,
-    ledgerWallet,
-} from '@rainbow-me/rainbowkit/wallets';
-import { WagmiProvider } from 'wagmi';
-import {
-    QueryClientProvider,
-    QueryClient,
-} from "@tanstack/react-query";
-import 'dotenv/config'
+    createConfig,
+    WagmiProvider
+} from 'wagmi';
+import { injected , safe } from 'wagmi/connectors'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { http } from 'viem';
+import { berachainTestnetbArtio} from 'viem/chains';
 
-import {
-    mainnet,
-    polygon,
-    optimism,
-    arbitrum,
-} from 'wagmi/chains';
-// import { publicProvider } from 'wagmi/providers/public';
-// import { alchemyProvider } from "wagmi/providers/alchemy";
-
-
-const config = getDefaultConfig({
-    appName: 'My RainbowKit App',
-    projectId: 'YOUR_PROJECT_ID',
-    chains: [mainnet, polygon, optimism, arbitrum],
-    ssr: true, // If your dApp uses server side rendering (SSR)
+const connector = safe({
+    allowedDomains: [/safe.berachain.com$/],
+    debug: true,
+})
+export const config = createConfig({
+    chains: [berachainTestnetbArtio],
+    connectors: [
+        connector,
+        injected()
+    ],
+    transports: {
+        [berachainTestnetbArtio.id]: http(),
+    },
 });
 
-const projectId = '9811958bd307518b364ff7178034c435';
+export const queryClient = new QueryClient();
 
-
-// const connectors = connectorsForWallets([
-//     ...wallets,
-//     {
-//         groupName: 'Other',
-//         wallets: [
-//             argentWallet({ projectId, chains }),
-//             trustWallet({ projectId, chains }),
-//             ledgerWallet({ projectId, chains }),
-//         ],
-//     },
-// ]);
-const { wallets } = getDefaultWallets({
-    appName: 'RainbowKit demo',
-    projectId,
-});
-
-const demoAppInfo = {
-    appName: 'My Wallet Demo',
-};
-
-const queryClient = new QueryClient();
-
-export function Providers({ children }: { children: React.ReactNode }) {
-    console.log("wallet", process.env.WALLET_CONNECT_PROJECT_ID)
-    const [mounted, setMounted] = React.useState(false);
-    React.useEffect(() => setMounted(true), []);
+export const Providers = ({ children }: { children: React.ReactNode }) => {
     return (
-        <WagmiProvider config={config}>
-            <QueryClientProvider client={queryClient}>
-                <RainbowKitProvider appInfo={demoAppInfo}>
-                    {mounted && children}
-                </RainbowKitProvider>
-            </QueryClientProvider>
-        </WagmiProvider>
+        <DynamicContextProvider
+            settings={{
+                environmentId: "60eae9ea-ff2d-43ce-918e-3364f52840d4",
+                walletConnectors: [EthereumWalletConnectors]
+            }}
+        >
+            <WagmiProvider config={config}>
+                <QueryClientProvider client={queryClient}>
+                    <DynamicWagmiConnector>
+                        {children}
+                    </DynamicWagmiConnector>
+                </QueryClientProvider>
+            </WagmiProvider>
+        </DynamicContextProvider>
     );
-}
+};

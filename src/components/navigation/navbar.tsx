@@ -7,7 +7,7 @@ import React, { useState } from "react";
 import { AiOutlineSearch } from "react-icons/ai";
 import { CgProfile } from "react-icons/cg";
 import { MdOutlineAccountBalanceWallet } from "react-icons/md";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { DynamicWidget } from "@dynamic-labs/sdk-react-core";
 
 
 const style = {
@@ -85,13 +85,9 @@ export default function Navbar() {
 						router.push("/nft");
 					}}
 				>
-					<CgProfile />
 				</div>
 				<div className={style.headerIcon}>
-					<MdOutlineAccountBalanceWallet />
-				</div>
-				<div>
-					<ConnectButton />
+					<DynamicWidget />
 				</div>
 			</div>
 		</div>

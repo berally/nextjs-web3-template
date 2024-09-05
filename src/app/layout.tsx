@@ -2,7 +2,6 @@ import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import Navbar from "../components/navigation/navbar";
-import '@rainbow-me/rainbowkit/styles.css';
 import { Providers } from './providers';
 
 const inter = Inter({ subsets: ['latin'] })
