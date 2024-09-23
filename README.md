@@ -11,24 +11,84 @@ yarn dev
 # or
 pnpm dev
 ```
+## Add Wagmi to the project, install the required packages
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+```
+yarn add wagmi viem@2.x @tanstack/react-query
+```
+Viem [https://viem.sh](http://localhost:3000) is a TypeScript interface for Ethereum that performs blockchain operations.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+TanStack Query [https://tanstack.com/query/v5](http://localhost:3000) is an async state manager that handles requests, caching, and more.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## Install Rainbowkit
+```
+yarn add  @rainbow-me/rainbowkit
+```
+Let’s create and export a new config using createConfig, in lib/config.ts
+```
+'use client';
 
-## Learn More
+import { http, createStorage, cookieStorage } from 'wagmi'
+import { berachainTestnetbArtio } from "viem/chains";
+import { Chain} from '@rainbow-me/rainbowkit'
+import { createConfig} from "wagmi";
+import { injected, safe } from "wagmi/connectors"; /** Config Safe Apps */
 
-To learn more about Next.js, take a look at the following resources:
+const supportedChains: Chain[] = [berachainTestnetbArtio];
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+export const config = createConfig({
+    chains: supportedChains as any,
+    connectors: [safe(), injected()],
+    ssr: true,
+    storage: createStorage({
+        storage: cookieStorage,
+    }),
+    transports: supportedChains.reduce((obj, chain) => ({ ...obj, [chain.id]: http() }), {})
+});
+```
+Config Safe Apps
+```
+import { injected, safe } from "wagmi/connectors";
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+In app/providers.tsx, add :
+```
+"use client";
 
-## Deploy on Vercel
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {WagmiProvider } from "wagmi";
+import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
+import { config } from "@/lib/config";
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+export const queryClient = new QueryClient();
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+type Props = {
+  children: React.ReactNode;
+};
+
+export default function Providers({ children }: Props) {
+  return (
+      <WagmiProvider config={config}>
+        <QueryClientProvider client={queryClient}>
+          <RainbowKitProvider
+              theme={darkTheme({
+                accentColor: "#0E76FD",
+                accentColorForeground: "white",
+                borderRadius: "large",
+                fontStack: "system",
+                overlayBlur: "small",
+              })}
+          >
+            {children}
+          </RainbowKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+  );
+}
+
+```
+
+## Test on Safe Apps
+https://safe.berachain.com/apps/open?safe=berachainbArtio:0x6e35fCb0c2A6302571169b1EB5B15Cf6DF75c1B3&appUrl=http://localhost:3000
+
+![Alt text](public/safe.png)

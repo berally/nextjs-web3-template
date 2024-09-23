@@ -1,30 +1,33 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { http } from "viem";
-import { berachainTestnetbArtio } from "viem/chains";
-import { createConfig, WagmiProvider } from "wagmi";
-import { injected, safe } from "wagmi/connectors";
-
-const connector = safe({
-  allowedDomains: [/safe.berachain.com$/],
-  debug: true,
-});
-
-export const config = createConfig({
-  chains: [berachainTestnetbArtio],
-  connectors: [connector, injected()],
-  transports: {
-    [berachainTestnetbArtio.id]: http(),
-  },
-});
+import {WagmiProvider } from "wagmi";
+import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
+import { config } from "@/lib/config";
 
 export const queryClient = new QueryClient();
 
-export const Providers = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    </WagmiProvider>
-  );
+type Props = {
+  children: React.ReactNode;
 };
+
+export default function Providers({ children }: Props) {
+  return (
+      <WagmiProvider config={config}>
+        <QueryClientProvider client={queryClient}>
+          <RainbowKitProvider
+              theme={darkTheme({
+                accentColor: "#0E76FD",
+                accentColorForeground: "white",
+                borderRadius: "large",
+                fontStack: "system",
+                overlayBlur: "small",
+              })}
+          >
+            {children}
+          </RainbowKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+  );
+}
+
